@@ -1,0 +1,163 @@
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "MILITARY JUMPING JACKS",
+    LoadingTitle = "Jumping Jack Hub",
+    LoadingSubtitle = "by Cerge",
+    Theme = "Default",
+    ConfigurationSaving = {Enabled = true, FolderName = nil, FileName = "JumpingJackConfig"},
+    KeySystem = false,
+})
+
+local Tab = Window:CreateTab("JUMPING JACKS", 4483362458)
+
+-- ReplicatedStorage Setup
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StopJumpingJacks = ReplicatedStorage:FindFirstChild("StopJumpingJacks")
+if not StopJumpingJacks then
+    StopJumpingJacks = Instance.new("RemoteEvent", ReplicatedStorage)
+    StopJumpingJacks.Name = "StopJumpingJacks"
+end
+
+-- Variables
+local isJumping = false
+local jumpCount = 0
+local cooldown = 1.2
+
+-- Full Number Words Table (1 to 300)
+local numberWords = {
+    [1] = "ONE", [2] = "TWO", [3] = "THREE", [4] = "FOUR", [5] = "FIVE",
+    [6] = "SIX", [7] = "SEVEN", [8] = "EIGHT", [9] = "NINE", [10] = "TEN",
+    [11] = "ELEVEN", [12] = "TWELVE", [13] = "THIRTEEN", [14] = "FOURTEEN", [15] = "FIFTEEN",
+    [16] = "SIXTEEN", [17] = "SEVENTEEN", [18] = "EIGHTEEN", [19] = "NINETEEN", [20] = "TWENTY",
+    [21] = "TWENTY ONE", [22] = "TWENTY TWO", [23] = "TWENTY THREE", [24] = "TWENTY FOUR", [25] = "TWENTY FIVE",
+    [26] = "TWENTY SIX", [27] = "TWENTY SEVEN", [28] = "TWENTY EIGHT", [29] = "TWENTY NINE", [30] = "THIRTY",
+    [31] = "THIRTY ONE", [32] = "THIRTY TWO", [33] = "THIRTY THREE", [34] = "THIRTY FOUR", [35] = "THIRTY FIVE",
+    [36] = "THIRTY SIX", [37] = "THIRTY SEVEN", [38] = "THIRTY EIGHT", [39] = "THIRTY NINE", [40] = "FORTY",
+    [41] = "FORTY ONE", [42] = "FORTY TWO", [43] = "FORTY THREE", [44] = "FORTY FOUR", [45] = "FORTY FIVE",
+    [46] = "FORTY SIX", [47] = "FORTY SEVEN", [48] = "FORTY EIGHT", [49] = "FORTY NINE", [50] = "FIFTY",
+    [51] = "FIFTY ONE", [52] = "FIFTY TWO", [53] = "FIFTY THREE", [54] = "FIFTY FOUR", [55] = "FIFTY FIVE",
+    [56] = "FIFTY SIX", [57] = "FIFTY SEVEN", [58] = "FIFTY EIGHT", [59] = "FIFTY NINE", [60] = "SIXTY",
+    [61] = "SIXTY ONE", [62] = "SIXTY TWO", [63] = "SIXTY THREE", [64] = "SIXTY FOUR", [65] = "SIXTY FIVE",
+    [66] = "SIXTY SIX", [67] = "SIXTY SEVEN", [68] = "SIXTY EIGHT", [69] = "SIXTY NINE", [70] = "SEVENTY",
+    [71] = "SEVENTY ONE", [72] = "SEVENTY TWO", [73] = "SEVENTY THREE", [74] = "SEVENTY FOUR", [75] = "SEVENTY FIVE",
+    [76] = "SEVENTY SIX", [77] = "SEVENTY SEVEN", [78] = "SEVENTY EIGHT", [79] = "SEVENTY NINE", [80] = "EIGHTY",
+    [81] = "EIGHTY ONE", [82] = "EIGHTY TWO", [83] = "EIGHTY THREE", [84] = "EIGHTY FOUR", [85] = "EIGHTY FIVE",
+    [86] = "EIGHTY SIX", [87] = "EIGHTY SEVEN", [88] = "EIGHTY EIGHT", [89] = "EIGHTY NINE", [90] = "NINETY",
+    [91] = "NINETY ONE", [92] = "NINETY TWO", [93] = "NINETY THREE", [94] = "NINETY FOUR", [95] = "NINETY FIVE",
+    [96] = "NINETY SIX", [97] = "NINETY SEVEN", [98] = "NINETY EIGHT", [99] = "NINETY NINE", [100] = "ONE HUNDRED",
+    [101] = "ONE HUNDRED ONE", [102] = "ONE HUNDRED TWO", [103] = "ONE HUNDRED THREE", [104] = "ONE HUNDRED FOUR", [105] = "ONE HUNDRED FIVE",
+    [106] = "ONE HUNDRED SIX", [107] = "ONE HUNDRED SEVEN", [108] = "ONE HUNDRED EIGHT", [109] = "ONE HUNDRED NINE", [110] = "ONE HUNDRED TEN",
+    [111] = "ONE HUNDRED ELEVEN", [112] = "ONE HUNDRED TWELVE", [113] = "ONE HUNDRED THIRTEEN", [114] = "ONE HUNDRED FOURTEEN", [115] = "ONE HUNDRED FIFTEEN",
+    [116] = "ONE HUNDRED SIXTEEN", [117] = "ONE HUNDRED SEVENTEEN", [118] = "ONE HUNDRED EIGHTEEN", [119] = "ONE HUNDRED NINETEEN", [120] = "ONE HUNDRED TWENTY",
+    [121] = "ONE HUNDRED TWENTY ONE", [122] = "ONE HUNDRED TWENTY TWO", [123] = "ONE HUNDRED TWENTY THREE", [124] = "ONE HUNDRED TWENTY FOUR", [125] = "ONE HUNDRED TWENTY FIVE",
+    [126] = "ONE HUNDRED TWENTY SIX", [127] = "ONE HUNDRED TWENTY SEVEN", [128] = "ONE HUNDRED TWENTY EIGHT", [129] = "ONE HUNDRED TWENTY NINE", [130] = "ONE HUNDRED THIRTY",
+    [131] = "ONE HUNDRED THIRTY ONE", [132] = "ONE HUNDRED THIRTY TWO", [133] = "ONE HUNDRED THIRTY THREE", [134] = "ONE HUNDRED THIRTY FOUR", [135] = "ONE HUNDRED THIRTY FIVE",
+    [136] = "ONE HUNDRED THIRTY SIX", [137] = "ONE HUNDRED THIRTY SEVEN", [138] = "ONE HUNDRED THIRTY EIGHT", [139] = "ONE HUNDRED THIRTY NINE", [140] = "ONE HUNDRED FORTY",
+    [141] = "ONE HUNDRED FORTY ONE", [142] = "ONE HUNDRED FORTY TWO", [143] = "ONE HUNDRED FORTY THREE", [144] = "ONE HUNDRED FORTY FOUR", [145] = "ONE HUNDRED FORTY FIVE",
+    [146] = "ONE HUNDRED FORTY SIX", [147] = "ONE HUNDRED FORTY SEVEN", [148] = "ONE HUNDRED FORTY EIGHT", [149] = "ONE HUNDRED FORTY NINE", [150] = "ONE HUNDRED FIFTY", [151] = "ONE HUNDRED FIFTY ONE", [152] = "ONE HUNDRED FIFTY TWO", [153] = "ONE HUNDRED FIFTY THREE", [154] = "ONE HUNDRED FIFTY FOUR", [155] = "ONE HUNDRED FIFTY FIVE",
+[156] = "ONE HUNDRED FIFTY SIX", [157] = "ONE HUNDRED FIFTY SEVEN", [158] = "ONE HUNDRED FIFTY EIGHT", [159] = "ONE HUNDRED FIFTY NINE", [160] = "ONE HUNDRED SIXTY",
+[161] = "ONE HUNDRED SIXTY ONE", [162] = "ONE HUNDRED SIXTY TWO", [163] = "ONE HUNDRED SIXTY THREE", [164] = "ONE HUNDRED SIXTY FOUR", [165] = "ONE HUNDRED SIXTY FIVE",
+[166] = "ONE HUNDRED SIXTY SIX", [167] = "ONE HUNDRED SIXTY SEVEN", [168] = "ONE HUNDRED SIXTY EIGHT", [169] = "ONE HUNDRED SIXTY NINE", [170] = "ONE HUNDRED SEVENTY",
+[171] = "ONE HUNDRED SEVENTY ONE", [172] = "ONE HUNDRED SEVENTY TWO", [173] = "ONE HUNDRED SEVENTY THREE", [174] = "ONE HUNDRED SEVENTY FOUR", [175] = "ONE HUNDRED SEVENTY FIVE",
+[176] = "ONE HUNDRED SEVENTY SIX", [177] = "ONE HUNDRED SEVENTY SEVEN", [178] = "ONE HUNDRED SEVENTY EIGHT", [179] = "ONE HUNDRED SEVENTY NINE", [180] = "ONE HUNDRED EIGHTY",
+[181] = "ONE HUNDRED EIGHTY ONE", [182] = "ONE HUNDRED EIGHTY TWO", [183] = "ONE HUNDRED EIGHTY THREE", [184] = "ONE HUNDRED EIGHTY FOUR", [185] = "ONE HUNDRED EIGHTY FIVE",
+[186] = "ONE HUNDRED EIGHTY SIX", [187] = "ONE HUNDRED EIGHTY SEVEN", [188] = "ONE HUNDRED EIGHTY EIGHT", [189] = "ONE HUNDRED EIGHTY NINE", [190] = "ONE HUNDRED NINETY",
+[191] = "ONE HUNDRED NINETY ONE", [192] = "ONE HUNDRED NINETY TWO", [193] = "ONE HUNDRED NINETY THREE", [194] = "ONE HUNDRED NINETY FOUR", [195] = "ONE HUNDRED NINETY FIVE",
+[196] = "ONE HUNDRED NINETY SIX", [197] = "ONE HUNDRED NINETY SEVEN", [198] = "ONE HUNDRED NINETY EIGHT", [199] = "ONE HUNDRED NINETY NINE", [200] = "TWO HUNDRED",
+[201] = "TWO HUNDRED ONE", [202] = "TWO HUNDRED TWO", [203] = "TWO HUNDRED THREE", [204] = "TWO HUNDRED FOUR", [205] = "TWO HUNDRED FIVE",
+[206] = "TWO HUNDRED SIX", [207] = "TWO HUNDRED SEVEN", [208] = "TWO HUNDRED EIGHT", [209] = "TWO HUNDRED NINE", [210] = "TWO HUNDRED TEN",
+[211] = "TWO HUNDRED ELEVEN", [212] = "TWO HUNDRED TWELVE", [213] = "TWO HUNDRED THIRTEEN", [214] = "TWO HUNDRED FOURTEEN", [215] = "TWO HUNDRED FIFTEEN",
+[216] = "TWO HUNDRED SIXTEEN", [217] = "TWO HUNDRED SEVENTEEN", [218] = "TWO HUNDRED EIGHTEEN", [219] = "TWO HUNDRED NINETEEN", [220] = "TWO HUNDRED TWENTY",
+[221] = "TWO HUNDRED TWENTY ONE", [222] = "TWO HUNDRED TWENTY TWO", [223] = "TWO HUNDRED TWENTY THREE", [224] = "TWO HUNDRED TWENTY FOUR", [225] = "TWO HUNDRED TWENTY FIVE",
+[226] = "TWO HUNDRED TWENTY SIX", [227] = "TWO HUNDRED TWENTY SEVEN", [228] = "TWO HUNDRED TWENTY EIGHT", [229] = "TWO HUNDRED TWENTY NINE", [230] = "TWO HUNDRED THIRTY",
+[231] = "TWO HUNDRED THIRTY ONE", [232] = "TWO HUNDRED THIRTY TWO", [233] = "TWO HUNDRED THIRTY THREE", [234] = "TWO HUNDRED THIRTY FOUR", [235] = "TWO HUNDRED THIRTY FIVE",
+[236] = "TWO HUNDRED THIRTY SIX", [237] = "TWO HUNDRED THIRTY SEVEN", [238] = "TWO HUNDRED THIRTY EIGHT", [239] = "TWO HUNDRED THIRTY NINE", [240] = "TWO HUNDRED FORTY",
+[241] = "TWO HUNDRED FORTY ONE", [242] = "TWO HUNDRED FORTY TWO", [243] = "TWO HUNDRED FORTY THREE", [244] = "TWO HUNDRED FORTY FOUR", [245] = "TWO HUNDRED FORTY FIVE",
+[246] = "TWO HUNDRED FORTY SIX", [247] = "TWO HUNDRED FORTY SEVEN", [248] = "TWO HUNDRED FORTY EIGHT", [249] = "TWO HUNDRED FORTY NINE", [250] = "TWO HUNDRED FIFTY",
+[251] = "TWO HUNDRED FIFTY ONE", [252] = "TWO HUNDRED FIFTY TWO", [253] = "TWO HUNDRED FIFTY THREE", [254] = "TWO HUNDRED FIFTY FOUR", [255] = "TWO HUNDRED FIFTY FIVE",
+[256] = "TWO HUNDRED FIFTY SIX", [257] = "TWO HUNDRED FIFTY SEVEN", [258] = "TWO HUNDRED FIFTY EIGHT", [259] = "TWO HUNDRED FIFTY NINE", [260] = "TWO HUNDRED SIXTY",
+[261] = "TWO HUNDRED SIXTY ONE", [262] = "TWO HUNDRED SIXTY TWO", [263] = "TWO HUNDRED SIXTY THREE", [264] = "TWO HUNDRED SIXTY FOUR", [265] = "TWO HUNDRED SIXTY FIVE",
+[266] = "TWO HUNDRED SIXTY SIX", [267] = "TWO HUNDRED SIXTY SEVEN", [268] = "TWO HUNDRED SIXTY EIGHT", [269] = "TWO HUNDRED SIXTY NINE", [270] = "TWO HUNDRED SEVENTY",
+[271] = "TWO HUNDRED SEVENTY ONE", [272] = "TWO HUNDRED SEVENTY TWO", [273] = "TWO HUNDRED SEVENTY THREE", [274] = "TWO HUNDRED SEVENTY FOUR", [275] = "TWO HUNDRED SEVENTY FIVE",
+[276] = "TWO HUNDRED SEVENTY SIX", [277] = "TWO HUNDRED SEVENTY SEVEN", [278] = "TWO HUNDRED SEVENTY EIGHT", [279] = "TWO HUNDRED SEVENTY NINE", [280] = "TWO HUNDRED EIGHTY",
+[281] = "TWO HUNDRED EIGHTY ONE", [282] = "TWO HUNDRED EIGHTY TWO", [283] = "TWO HUNDRED EIGHTY THREE", [284] = "TWO HUNDRED EIGHTY FOUR", [285] = "TWO HUNDRED EIGHTY FIVE",
+[286] = "TWO HUNDRED EIGHTY SIX", [287] = "TWO HUNDRED EIGHTY SEVEN", [288] = "TWO HUNDRED EIGHTY EIGHT", [289] = "TWO HUNDRED EIGHTY NINE", [290] = "TWO HUNDRED NINETY",
+[291] = "TWO HUNDRED NINETY ONE", [292] = "TWO HUNDRED NINETY TWO", [293] = "TWO HUNDRED NINETY THREE", [294] = "TWO HUNDRED NINETY FOUR", [295] = "TWO HUNDRED NINETY FIVE",
+[296] = "TWO HUNDRED NINETY SIX", [297] = "TWO HUNDRED NINETY SEVEN", [298] = "TWO HUNDRED NINETY EIGHT", [299] = "TWO HUNDRED NINETY NINE", [300] = "THREE HUNDRED"
+}
+
+-- Jumping Routine
+local function startJumping(count)
+    if isJumping then return end
+    isJumping = true
+    local player = game.Players.LocalPlayer
+
+    for i = 1, count do
+        if not isJumping then break end
+
+        -- Chat the number
+        local word = numberWords[i]
+        if word then
+            game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(word, "All")
+
+            -- Jump
+            local char = player.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+
+            task.wait(cooldown)
+        end
+    end
+
+    isJumping = false
+end
+
+-- Stop Routine
+local function stopJumping()
+    isJumping = false
+end
+
+-- UI Input Box
+Tab:CreateInput({
+    Name = "Jump Count (1–300)",
+    CurrentValue = "50",
+    PlaceholderText = "Enter number of JJs",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(txt)
+        local n = tonumber(txt)
+        if n and n >= 1 and n <= 300 then
+            jumpCount = n
+            print("[JJ] Count set to", n)
+        else
+            warn("[JJ] Invalid entry—must be 1 to 300")
+        end
+    end,
+})
+
+-- Start Button
+Tab:CreateButton({
+    Name = "Start Jumping Jacks",
+    Callback = function()
+        if jumpCount > 0 then
+            startJumping(jumpCount)
+        else
+            warn("[JJ] Set a valid count first!")
+        end
+    end,
+})
+
+-- Master Stop Button
+Tab:CreateButton({
+    Name = "Master Stop",
+    Callback = function()
+        stopJumping()
+        print("[JJ] Master stop triggered")
+    end,
+})
+
+-- Remote Stop Listener
+StopJumpingJacks.OnClientEvent:Connect(stopJumping)
