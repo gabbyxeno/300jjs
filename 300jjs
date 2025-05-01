@@ -23,7 +23,7 @@ end
 -- Variables
 local isJumping = false
 local jumpCount = 0
-local cooldown = 1.2
+local cooldown = 3.2
 
 -- Full Number Words Table (1 to 300)
 local numberWords = {
